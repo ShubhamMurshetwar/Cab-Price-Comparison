@@ -1,145 +1,104 @@
-// Cab price comparison logic (static site)
-
-const providers = [
-  {
-    name: "Rapido",
-    type: "Bike",
-    base: 30,
-    perKm: 9,
-    perMin: 1.2,
-    minFare: 50,
-    eta: "6-12 min"
-  },
-  {
-    name: "Uber",
-    type: "Cab",
-    base: 45,
-    perKm: 12,
-    perMin: 1.5,
-    minFare: 70,
-    eta: "7-15 min"
-  },
-  {
-    name: "Ola",
-    type: "Cab",
-    base: 40,
-    perKm: 11,
-    perMin: 1.6,
-    minFare: 75,
-    eta: "8-16 min"
-  }
-];
-
-const TAX_RATE = 0.05; // 5%
-
-function estimateFare(provider, km, mins, surge=1.0, discount=0) {
-  const raw = (provider.base + provider.perKm * km + provider.perMin * mins);
-  const surged = raw * Math.max(1, surge);
-  const withMin = Math.max(provider.minFare, surged);
-  const taxed = withMin * (1 + TAX_RATE);
-  const finalFare = Math.max(0, Math.round(taxed - discount));
-  return finalFare;
-}
-
-function formatINR(v){ return `₹${v.toLocaleString("en-IN")}`; }
-
-function saveHistory(entry) {
-  const key = "cab_history";
-  const prev = JSON.parse(localStorage.getItem(key) || "[]");
-  prev.unshift(entry);
-  const trimmed = prev.slice(0, 8);
-  localStorage.setItem(key, JSON.stringify(trimmed));
-  renderHistory();
-}
-
-function renderHistory(){
-  const list = document.getElementById("historyList");
-  const prev = JSON.parse(localStorage.getItem("cab_history") || "[]");
-  list.innerHTML = "";
-  if(prev.length === 0){
-    const li = document.createElement("li");
-    li.textContent = "No recent searches yet.";
-    li.style.color = "#9fb0c0";
-    list.appendChild(li);
-    return;
-  }
-  prev.forEach((item, idx) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<span>${idx+1}. ${item.pickup} → ${item.drop} • ${item.km} km, ${item.mins} mins • Surge x${item.surge}</span>`;
-    const btn = document.createElement("button");
-    btn.textContent = "Re-run";
-    btn.onclick = () => {
-      document.getElementById("pickup").value = item.pickup;
-      document.getElementById("drop").value = item.drop;
-      document.getElementById("distance").value = item.km;
-      document.getElementById("duration").value = item.mins;
-      document.getElementById("surge").value = item.surge;
-      document.getElementById("discount").value = item.discount || 0;
-      runComparison();
-    };
-    li.appendChild(btn);
-    list.appendChild(li);
-  });
-}
-
-function runComparison() {
+document.getElementById("compareForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  
   const pickup = document.getElementById("pickup").value.trim();
   const drop = document.getElementById("drop").value.trim();
-  const km = parseFloat(document.getElementById("distance").value);
-  const mins = parseFloat(document.getElementById("duration").value);
-  const surge = parseFloat(document.getElementById("surge").value || "1");
-  const discount = parseFloat(document.getElementById("discount").value || "0");
+  const distance = parseFloat(document.getElementById("distance").value);
+  const cabType = document.getElementById("cabType").value;
+  
+  if (!pickup || !drop) {
+    alert("Please enter both pickup and drop locations");
+    return;
+  }
+  
+  if (!distance || distance <= 0) {
+    alert("Please enter a valid distance");
+    return;
+  }
 
-  if(!pickup || !drop || isNaN(km) || isNaN(mins)) return;
+  calculateFares(pickup, drop, distance, cabType);
+});
 
-  const tbody = document.querySelector("#resultsTable tbody");
-  tbody.innerHTML = "";
+function calculateFares(pickup, drop, distance, cabType) {
+  const fareRates = {
+    bike: {
+      Uber: { base: 15, perKm: 5, minFare: 25 },
+      Rapido: { base: 10, perKm: 4, minFare: 20 },
+      Ola: null
+    },
+    auto: {
+      Ola: { base: 30, perKm: 11, minFare: 45 },
+      Uber: { base: 25, perKm: 10, minFare: 40 },
+      Rapido: { base: 20, perKm: 9, minFare: 35 }
+    },
+    mini: {
+      Ola: { base: 50, perKm: 13, minFare: 75 },
+      Uber: { base: 45, perKm: 12, minFare: 70 },
+      Rapido: { base: 40, perKm: 11, minFare: 65 }
+    },
+    sedan: {
+      Ola: { base: 70, perKm: 16, minFare: 100 },
+      Uber: { base: 65, perKm: 15, minFare: 95 },
+      Rapido: { base: 60, perKm: 14, minFare: 90 }
+    },
+    suv: {
+      Ola: { base: 100, perKm: 20, minFare: 150 },
+      Uber: { base: 95, perKm: 19, minFare: 140 },
+      Rapido: null
+    }
+  };
 
-  const rows = providers.map(p => {
-    const fare = estimateFare(p, km, mins, surge, discount);
-    return {
-      provider: p.name,
-      base: p.base,
-      perKm: p.perKm,
-      perMin: p.perMin,
-      fare,
-      eta: p.eta
+  let resultsHTML = '';
+  const apps = ['Ola', 'Uber', 'Rapido'];
+  
+  apps.forEach(app => {
+    const service = fareRates[cabType][app];
+    const isAvailable = service !== null;
+    
+    const encodedPickup = encodeURIComponent(pickup);
+    const encodedDrop = encodeURIComponent(drop);
+    
+    // Deep links for each app
+    const appLinks = {
+      Ola: `https://olacabs.com/mobile?pickup=${encodedPickup}&drop=${encodedDrop}&category=${cabType}`,
+      Uber: `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodedPickup}&dropoff[formatted_address]=${encodedDrop}`,
+      Rapido: `https://rapido.bike/?pickup=${encodedPickup}&drop=${encodedDrop}`
     };
+    
+    if (!isAvailable) {
+      resultsHTML += `
+        <div class="result-card unavailable">
+          <div class="result-info">
+            <div class="result-title">${app}</div>
+            <div class="result-price">Not Available</div>
+          </div>
+          <a href="${appLinks[app]}" class="book-btn" target="_blank">Open App</a>
+        </div>`;
+    } else {
+      const fare = Math.max(
+        service.minFare,
+        Math.round(service.base + (service.perKm * distance))
+      );
+      
+      resultsHTML += `
+        <div class="result-card ${app.toLowerCase()}">
+          <div class="result-info">
+            <div class="result-title">${app} ${cabType.charAt(0).toUpperCase() + cabType.slice(1)}</div>
+            <div class="result-price">₹${fare}</div>
+          </div>
+          <a href="${appLinks[app]}" class="book-btn" target="_blank">Book Now</a>
+        </div>`;
+    }
   });
-
-  // Determine cheapest
-  const minFare = Math.min(...rows.map(r => r.fare));
-
-  rows
-    .sort((a,b) => a.fare - b.fare)
-    .forEach(row => {
-      const tr = document.createElement("tr");
-      if(row.fare === minFare) tr.classList.add("highlight");
-      tr.innerHTML = `
-        <td>${row.provider}</td>
-        <td>${formatINR(row.base)}</td>
-        <td>${formatINR(row.perKm)}</td>
-        <td>${formatINR(row.perMin)}</td>
-        <td><strong>${formatINR(row.fare)}</strong> ${row.fare===minFare ? '<span class="badge cheapest" style="margin-left:6px;">Cheapest</span>':''}</td>
-        <td>${row.eta}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-  document.getElementById("resultsSection").hidden = false;
-
-  saveHistory({pickup, drop, km, mins, surge, discount});
+  
+  // Add route info
+  resultsHTML = `
+    <div class="route-info">
+      <h3><i class="fas fa-route"></i> ${pickup} to ${drop}</h3>
+      <p>${distance} km • ${cabType.charAt(0).toUpperCase() + cabType.slice(1)}</p>
+    </div>
+    ${resultsHTML}
+  `;
+  
+  document.getElementById("result").innerHTML = resultsHTML;
 }
-
-document.getElementById("compareForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  runComparison();
-});
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  document.getElementById("compareForm").reset();
-  document.querySelector("#resultsTable tbody").innerHTML = "";
-  document.getElementById("resultsSection").hidden = true;
-});
-
-renderHistory();

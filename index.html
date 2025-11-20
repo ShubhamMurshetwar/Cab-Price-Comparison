@@ -1,89 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cab Price Comparison — Rapido vs Uber vs Ola</title>
-  <link rel="stylesheet" href="styles.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CabCompare | Ride Price Comparison</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="container">
-    <h1>Cab Price Comparison</h1>
-    <p class="subtitle">Compare estimated fares between <strong>Rapido</strong>, <strong>Uber</strong>, and <strong>Ola</strong></p>
-  </header>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <i class="fas fa-taxi"></i>
+        <h1>CabCompare</h1>
+      </div>
+      <p class="tagline">Find the best ride prices in your city</p>
+    </div>
 
-  <main class="container">
-    <section class="card">
+    <div class="card">
       <form id="compareForm">
-        <div class="grid">
-          <label>
-            <span>Pickup Location</span>
-            <input type="text" id="pickup" placeholder="e.g., Hinjewadi Phase 1" required>
-          </label>
-          <label>
-            <span>Drop Location</span>
-            <input type="text" id="drop" placeholder="e.g., Shivajinagar" required>
-          </label>
-          <label>
-            <span>Distance (km)</span>
-            <input type="number" id="distance" min="0.5" step="0.1" placeholder="e.g., 12.5" required>
-          </label>
-          <label>
-            <span>Traffic (mins)</span>
-            <input type="number" id="duration" min="1" step="1" placeholder="e.g., 35" required>
-          </label>
-          <label>
-            <span>Surge Multiplier</span>
-            <input type="number" id="surge" min="1" step="0.1" value="1.0">
-          </label>
-          <label>
-            <span>Promo Discount (₹)</span>
-            <input type="number" id="discount" min="0" step="1" value="0">
-          </label>
+        <div class="input-group">
+          <label><i class="fas fa-map-marker-alt"></i> Pickup Location</label>
+          <input type="text" id="pickup" placeholder="Enter pickup address" required>
         </div>
-        <div class="actions">
-          <button type="submit" class="primary">Compare Prices</button>
-          <button type="button" id="resetBtn" class="ghost">Reset</button>
+        
+        <div class="input-group">
+          <label><i class="fas fa-flag"></i> Drop Location</label>
+          <input type="text" id="drop" placeholder="Enter destination address" required>
         </div>
+        
+        <div class="input-group">
+          <label><i class="fas fa-road"></i> Distance (km)</label>
+          <input type="number" id="distance" placeholder="Enter distance" required min="1" step="0.1">
+        </div>
+        
+        <div class="input-group">
+          <label><i class="fas fa-car"></i> Ride Type</label>
+          <select id="cabType" required>
+            <option value="bike">Bike (Uber/Rapido)</option>
+            <option value="auto" selected>Auto (All)</option>
+            <option value="mini">Mini/Go (All)</option>
+            <option value="sedan">Sedan (All)</option>
+            <option value="suv">SUV (Ola/Uber)</option>
+          </select>
+        </div>
+        
+        <button type="submit" class="btn">
+          <i class="fas fa-search-dollar"></i> Compare Prices
+        </button>
       </form>
-    </section>
 
-    <section class="card" id="resultsSection" hidden>
-      <div class="results-header">
-        <h2>Results</h2>
-        <div class="legend">
-          <span class="badge cheapest">Cheapest</span>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table id="resultsTable" aria-label="Cab price comparison">
-          <thead>
-            <tr>
-              <th>Provider</th>
-              <th>Base (₹)</th>
-              <th>Per km (₹)</th>
-              <th>Per min (₹)</th>
-              <th>Estimated Fare (₹)</th>
-              <th>ETA</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card">
-      <h3>Recent Searches</h3>
-      <ul id="historyList" class="history"></ul>
-    </section>
-  </main>
-
-  <footer class="container footer">
-    <p>Estimates are illustrative using public rate assumptions; actual fares may vary.</p>
-  </footer>
+      <div id="result" class="results"></div>
+    </div>
+    
+    <div class="footer">
+      <p>Prices are estimates. Actual fares may vary.</p>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
