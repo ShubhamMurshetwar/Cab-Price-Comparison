@@ -1,14 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CabCompare | Ride Price Comparison</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    .input-group {
+      position: relative; 
+    }
+
+    .pac-container {
+      max-width: 100% !important;
+      width: 100% !important;
+      left: 0 !important;
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+    }
+  </style>
 </head>
 <body>
+
   <div class="container">
     <div class="header">
       <div class="logo">
@@ -22,30 +38,32 @@
       <form id="compareForm">
         <div class="input-group">
           <label><i class="fas fa-map-marker-alt"></i> Pickup Location</label>
-          <input type="text" id="pickup" placeholder="Enter pickup address" required>
+          <input type="text" id="pickup" placeholder="Enter pickup address" required />
+          <div id="pickup-suggestions" class="a"></div>
         </div>
-        
+
         <div class="input-group">
           <label><i class="fas fa-flag"></i> Drop Location</label>
-          <input type="text" id="drop" placeholder="Enter destination address" required>
+          <input type="text" id="drop" placeholder="Enter destination address" required />
+          <div id="drop-suggestions" class="b"></div>
         </div>
-        
+
         <div class="input-group">
           <label><i class="fas fa-road"></i> Distance (km)</label>
-          <input type="number" id="distance" placeholder="Enter distance" required min="1" step="0.1">
+          <input type="number" id="distance" placeholder="Calculated automatically" readonly />
         </div>
-        
+
         <div class="input-group">
           <label><i class="fas fa-car"></i> Ride Type</label>
           <select id="cabType" required>
             <option value="bike">Bike (Uber/Rapido)</option>
             <option value="auto" selected>Auto (All)</option>
-            <option value="mini">Mini/Go (All)</option>
-            <option value="sedan">Sedan (All)</option>
-            <option value="suv">SUV (Ola/Uber)</option>
+            <option value="mini">Mini</option>
+            <option value="sedan">Sedan</option>
+            <option value="suv">SUV</option>
           </select>
         </div>
-        
+
         <button type="submit" class="btn">
           <i class="fas fa-search-dollar"></i> Compare Prices
         </button>
@@ -53,7 +71,7 @@
 
       <div id="result" class="results"></div>
     </div>
-    
+
     <div class="footer">
       <p>Prices are estimates. Actual fares may vary.</p>
     </div>
